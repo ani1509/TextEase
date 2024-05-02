@@ -2,7 +2,7 @@
   "homepage": "https://ani1509.github.io/TextEase",
   "name": "my-app",
   "version": "0.1.0",
-  "private": true,
+  "private": true, 
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
