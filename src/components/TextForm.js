@@ -153,7 +153,7 @@ export default function TextForm(props) {
         </button>
         <button
           className={`btn ${
-            props.mode === "dark" ? "btn-dark" : "btn-dark"
+            props.mode === "dark" ? "btn-light" : "btn-dark"
           } mx-1 my-1`}
           onClick={clearr}
         >
