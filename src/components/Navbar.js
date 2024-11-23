@@ -16,10 +16,8 @@ export default function Navbar(prop) {
       }}
     >
       <div className="container-fluid ">
-        
-        <a className="navbar-brand " href="#">
-          {prop.title}
-        </a>
+        {/* <a className="navbar-brand" href="#"></a> */}
+        <h3>{prop.title}</h3>
         {/* <Link className="navbar-brand " to="/">
           {prop.title}
         </Link> */}
@@ -68,7 +66,7 @@ export default function Navbar(prop) {
               htmlFor="flexSwitchCheckDefault"
               style={{ cursor: "pointer" }} ////   **** VVIMP ********************************
             >
-              {prop.mode === "light" ? "Dark Mode On" : "Dark Mode Off"}
+              {prop.mode === "light" ? "Enable Dark Mode" : "Disable Dark Mode"}
             </label>
           </div>
         </div>
@@ -79,7 +77,7 @@ export default function Navbar(prop) {
 
 Navbar.propTypes = {
   title: propTypes.string.isRequired, // then it becomes mandatory to pass or set a default title
-  abt: propTypes.string,
+  abt: propTypes.string,  
 };
 
 Navbar.defaultProps = {

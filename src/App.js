@@ -22,7 +22,7 @@ function App() {
       type: type,
     });
 
-    //  ***** below is used to set setAlert to NULL after 1sec *****
+    //  ***** below is used to set setAlert to NULL after 1.5sec *****
     setTimeout(() => {
       setAlert(null);
     }, 1500);
@@ -60,7 +60,7 @@ function App() {
               {/* }
             /> */}
             {/* <Route exact path="/about" element={<About />} /> */}
-          {/* </Routes> */}
+          {/* </Routes> */} 
           <Footer mode={mode} />
         </div>
       {/* </Router> */}
