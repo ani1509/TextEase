@@ -12,3 +12,80 @@ code {
     monospace;
 }
 
+
+input::placeholder {
+  color: #666666;
+  /* Default color for light mode */
+}
+
+
+/* Placeholder styles for light mode */
+.light-placeholder::placeholder {
+  color: #666666;
+  /* Adjust this color as needed for visibility */
+  opacity: 1;
+  /* Ensures the placeholder is fully visible */
+}
+
+/* Placeholder styles for dark mode */
+.dark-placeholder::placeholder {
+  color: #aaaaaa;
+  /* Adjust this color as needed for dark mode visibility */
+  opacity: 1;
+}
+
+
+.find-replace-section {
+  display: flex;
+  align-items: center;
+  /* Align inputs and button vertically */
+  gap: 10px;
+  /* Add spacing between items */
+  flex-wrap: wrap;
+  /* Ensure proper wrapping on smaller screens */
+}
+
+.find-replace-section input {
+  flex: 1;
+  /* Inputs take equal space */
+  max-width: 220px;
+  /* Ensure consistent sizing for inputs */
+  padding: 8px;
+  /* Match button's padding */
+  box-sizing: border-box;
+  /* Prevent overflow due to padding */
+}
+
+/* .find-replace-section button {
+  padding: 8px 16px;
+  /* Match the padding of the inputs */
+  /* height: 38px; */
+  /* Ensure consistent height with inputs */
+  /* line-height: normal; */
+  /* Avoid oversized text in the button */
+  /* white-space: nowrap; */
+  /* Prevent text wrapping in the button */
+/* } */ */
+
+.find-replace-section button {
+  padding: 0.25rem 0.5rem;
+  /* Matches Bootstrap's .btn-sm */
+  height: auto;
+  /* Bootstrap adjusts height automatically */
+  line-height: 1.5;
+  /* Consistent with Bootstrap */
+  white-space: nowrap;
+  /* Prevent text wrapping in the button */
+  font-size: 0.875rem;
+  /* Matches .btn-sm font size */
+  border: 1px solid transparent;
+  /* Ensures a Bootstrap-like border style */
+  border-radius: 0.2rem;
+  /* Matches Bootstrap's rounded corners */
+  display: inline-block;
+  /* Consistent layout */
+  text-align: center;
+  /* Centers button text */
+  cursor: pointer;
+  /* Pointer on hover */
+}
