@@ -1,15 +1,21 @@
 {
   "files": {
-    "main.css": "/TextEase/static/css/main.af01df1c.css",
-    "main.js": "/TextEase/static/js/main.c6b9d5bf.js",
-    "static/js/453.ed3810f9.chunk.js": "/TextEase/static/js/453.ed3810f9.chunk.js",
+    "main.css": "/TextEase/static/css/main.69b7ce6a.css",
+    "main.js": "/TextEase/static/js/main.5efd906d.js",
+    "static/js/239.2b17afd9.chunk.js": "/TextEase/static/js/239.2b17afd9.chunk.js",
+    "static/js/213.3317431a.chunk.js": "/TextEase/static/js/213.3317431a.chunk.js",
+    "static/js/732.be7fbf8b.chunk.js": "/TextEase/static/js/732.be7fbf8b.chunk.js",
+    "static/js/453.68693753.chunk.js": "/TextEase/static/js/453.68693753.chunk.js",
     "index.html": "/TextEase/index.html",
-    "main.af01df1c.css.map": "/TextEase/static/css/main.af01df1c.css.map",
-    "main.c6b9d5bf.js.map": "/TextEase/static/js/main.c6b9d5bf.js.map",
-    "453.ed3810f9.chunk.js.map": "/TextEase/static/js/453.ed3810f9.chunk.js.map"
+    "main.69b7ce6a.css.map": "/TextEase/static/css/main.69b7ce6a.css.map",
+    "main.5efd906d.js.map": "/TextEase/static/js/main.5efd906d.js.map",
+    "239.2b17afd9.chunk.js.map": "/TextEase/static/js/239.2b17afd9.chunk.js.map",
+    "213.3317431a.chunk.js.map": "/TextEase/static/js/213.3317431a.chunk.js.map",
+    "732.be7fbf8b.chunk.js.map": "/TextEase/static/js/732.be7fbf8b.chunk.js.map",
+    "453.68693753.chunk.js.map": "/TextEase/static/js/453.68693753.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.af01df1c.css",
-    "static/js/main.c6b9d5bf.js"
+    "static/css/main.69b7ce6a.css",
+    "static/js/main.5efd906d.js"
   ]
 }
