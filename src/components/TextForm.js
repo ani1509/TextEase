@@ -693,7 +693,7 @@ export default function TextForm(props) {
 
         <div className="btn-group mx-1 my-1">
           <button
-            className="btn btn-sm btn-info dropdown-toggle"
+            className="btn btn-sm btn-success dropdown-toggle"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
