@@ -644,7 +644,8 @@ export default function TextForm(props) {
         <button
           className="btn btn-sm btn-danger  mx-1 my-1"
           type="button"
-          onClick={() => {clearr();
+          onClick={() => {
+            clearr();
             setFindValue(""); // Clear the "Find" input
             setReplaceValue(""); // Clear the "Replace" input
             setText(""); // Clear the main text area
@@ -736,10 +737,11 @@ export default function TextForm(props) {
       >
         <h4>Text Summary</h4>
         <p>
-          {wordCount} words, {letterCount} letters, {charCount} characters,{" "}
-          {sentenceCount} sentence(s), and {paragraphCount} paragraph(s)
+          {wordCount} word(s), {letterCount} letter(s), {charCount}{" "}
+          character(s), {sentenceCount} sentence(s) and {paragraphCount}{" "}
+          paragraph(s)
         </p>
-        <p>{0.008 * wordCount} Minutes read</p>
+        <p>{0.008 * wordCount} Minute(s) read</p>
       </div>
     </>
   );
