@@ -598,12 +598,21 @@ export default function TextForm(props) {
               marginTop: 7,
             }}
           />
-          <Button
+
+          {/* <Button
             text="Find and Replace"
             onClick={handleFindAndReplace}
             mode={props.mode}
-          />
-          {/* </div> */}
+          /> */}
+
+          <button
+            className="btn btn-sm btn-dark mx-1 my-1"
+            type="button"
+            onClick={handleFindAndReplace}
+            mode={props.mode}
+          >
+            Find and Replace
+          </button>
         </div>
 
         <Button
@@ -648,26 +657,26 @@ export default function TextForm(props) {
         />
         <Button text="Paste" onClick={handlePaste} mode={props.mode} />
         <Button text="Copy" onClick={copyy} mode={props.mode} />
-        <Button text="Undo" onClick={handleUndo} mode={props.mode} /> 
-         <Button text="Redo" onClick={handleRedo} mode={props.mode} />
-        {/* <button
-          className="btn btn-sm btn-primary  mx-1"
+        {/* <Button text="Undo" onClick={handleUndo} mode={props.mode} /> 
+         <Button text="Redo" onClick={handleRedo} mode={props.mode} /> */}
+        <button
+          className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
-          onClick={clearr}
+          onClick={handleUndo}
           mode={props.mode}
         >
           Undo
         </button>
         <button
-          className="btn btn-sm btn-primary  mx-1"
+          className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
-          onClick={clearr}
+          onClick={handleRedo}
           mode={props.mode}
         >
           Redo
-        </button> */}
+        </button>
         <button
-          className="btn btn-sm btn-danger  mx-1"
+          className="btn btn-sm btn-danger  mx-1 my-1"
           type="button"
           onClick={clearr}
           mode={props.mode}
@@ -675,9 +684,9 @@ export default function TextForm(props) {
           Clear
         </button>
 
-        <div className="btn-group mx-1">
+        <div className="btn-group mx-1 my-1">
           <button
-            className="btn btn-sm btn-warning dropdown-toggle"
+            className="btn btn-sm btn-success dropdown-toggle"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
@@ -712,9 +721,9 @@ export default function TextForm(props) {
           </ul>
         </div>
 
-        <div className="btn-group mx-1">
+        <div className="btn-group mx-1 my-1">
           <button
-            className="btn btn-sm btn-success dropdown-toggle"
+            className="btn btn-sm btn-info dropdown-toggle"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"

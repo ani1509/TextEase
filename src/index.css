@@ -65,7 +65,7 @@ input::placeholder {
   /* Avoid oversized text in the button */
   /* white-space: nowrap; */
   /* Prevent text wrapping in the button */
-/* } */ */
+/* } */ 
 
 .find-replace-section button {
   padding: 0.25rem 0.5rem;
