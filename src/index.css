@@ -89,3 +89,36 @@ input::placeholder {
   cursor: pointer;
   /* Pointer on hover */
 }
+
+
+
+
+/* Default styles for the light mode */
+body.light {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.light input::placeholder {
+  color: #666666;
+}
+
+body.light .find-replace-section button {
+  background-color: #f0f0f0;
+  color: #000000;
+}
+
+/* Dark mode styles */
+body.dark {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+body.dark input::placeholder {
+  color: #aaaaaa;
+}
+
+body.dark .find-replace-section button {
+  background-color: #444444;
+  color: #ffffff;
+}

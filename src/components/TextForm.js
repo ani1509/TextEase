@@ -133,11 +133,11 @@ export default function TextForm(props) {
       return;
     }
 
-    // Escape special characters for regex handling
+    // Escape special characters in findValue for regex handling
     const escapedFindValue = findValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // Create a global regex for finding only the standalone 'S' (or other specific text) with word boundaries
-    const regex = new RegExp(`\\b${escapedFindValue}\\b`, "g");
+    // Create a global regex for finding all occurrences of findValue, including special characters
+    const regex = new RegExp(escapedFindValue, "g");
 
     // Check if the findValue exists in the text
     if (!regex.test(text)) {
@@ -148,7 +148,7 @@ export default function TextForm(props) {
     // Save current state to history before making changes
     saveToHistory(text);
 
-    // Replace all occurrences of the findValue with replaceValue, respecting word boundaries
+    // Replace all occurrences of the findValue with replaceValue
     const updatedText = text.replace(regex, replaceValue);
 
     // Update the text with the replaced value
@@ -205,27 +205,18 @@ export default function TextForm(props) {
     props.showAlert("Capitalized!", "success");
   };
 
-  // Copy text to clipboard
-  // const copyy = () => {
-  //   if (!text) {
-  //     props.showAlert("Nothing to copy!", "warning");
-  //     return;
-  //   }
 
-  //   if (navigator.clipboard && navigator.clipboard.writeText) {
-  //     navigator.clipboard
-  //       .writeText(text)
-  //       .then(() => {
-  //         props.showAlert("Text copied to clipboard!", "success");
-  //       })
-  //       .catch((err) => {
-  //         console.error("Clipboard API failed:", err);
-  //         props.showAlert("Copy failed!", "danger");
-  //       });
-  //   } else {
-  //     props.showAlert("Clipboard API not supported!", "danger");
-  //   }
-  // };
+  const removeNumbers = () => {
+    if (!text) {
+      props.showAlert("Nothing to process!", "warning");
+      return;
+    }
+    saveToHistory(text);
+    const textWithoutNumbers = text.replace(/\d+/g, ""); // Removes all numbers
+    setText(textWithoutNumbers);
+    props.showAlert("Numbers removed!", "success");
+  };
+
 
   // Function to remove special characters except letters, numbers, and spaces
   const removeSpecialCharacters = () => {
@@ -316,22 +307,6 @@ export default function TextForm(props) {
   };
 
   // Add numbering to list
-  // const handleAddLineNumbers = () => {
-  //   if (!text) {
-  //     props.showAlert("Nothing to number!", "warning");
-  //     return;
-  //   }
-  //   saveToHistory(text);
-
-  //   const lines = text.split("\n").map((line) => line.replace(/^\d+\.\s*/, ""));
-  //   const numberedText = lines
-  //     .map((line, index) => `${index + 1}. ${line}`)
-  //     .join("\n");
-
-  //   setText(numberedText);
-  //   props.showAlert("Numbering applied!", "success");
-  // };
-
   const handleAddLineNumbers = () => {
     // Remove extra blank lines and split into lines
     const nonBlankLines = text
@@ -383,18 +358,7 @@ export default function TextForm(props) {
     props.showAlert("List sorted!", "success");
   };
 
-  // // Undo the last change
-  // const handleUndo = () => {
-  //   if (history.length > 0) {
-  //     setText(history[history.length - 1]);
-  //     setHistory(history.slice(0, -1));
-  //     props.showAlert("Undone!", "success");
-  //   } else {
-  //     props.showAlert("Nothing to undo!", "warning");
-  //   }
-  // };
-
-  // Encrypt the text
+    // Encrypt the text
   const handleEncrypt = () => {
     if (!text) {
       props.showAlert("Please enter text to encrypt!", "warning");
@@ -599,20 +563,19 @@ export default function TextForm(props) {
             }}
           />
 
-          {/* <Button
-            text="Find and Replace"
-            onClick={handleFindAndReplace}
-            mode={props.mode}
-          /> */}
-
-          <button
-            className="btn btn-sm btn-dark mx-1 my-1"
+          {/* <button
+            className="btn btn-sm btn-primary mx-1 my-1"
             type="button"
             onClick={handleFindAndReplace}
             mode={props.mode}
           >
             Find and Replace
-          </button>
+            </button> */}
+          <Button
+            text="Find and Replace"
+            onClick={handleFindAndReplace}
+            mode={props.mode}
+          />
         </div>
 
         <Button
@@ -637,6 +600,11 @@ export default function TextForm(props) {
           mode={props.mode}
         />
         <Button
+          text="Remove Numbers"
+          onClick={removeNumbers}
+          mode={props.mode}
+        />
+        <Button
           text="Remove Extra Space"
           onClick={rmvExtraSpc}
           mode={props.mode}
@@ -657,8 +625,6 @@ export default function TextForm(props) {
         />
         <Button text="Paste" onClick={handlePaste} mode={props.mode} />
         <Button text="Copy" onClick={copyy} mode={props.mode} />
-        {/* <Button text="Undo" onClick={handleUndo} mode={props.mode} /> 
-         <Button text="Redo" onClick={handleRedo} mode={props.mode} /> */}
         <button
           className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
@@ -678,7 +644,11 @@ export default function TextForm(props) {
         <button
           className="btn btn-sm btn-danger  mx-1 my-1"
           type="button"
-          onClick={clearr}
+          onClick={() => {clearr();
+            setFindValue(""); // Clear the "Find" input
+            setReplaceValue(""); // Clear the "Replace" input
+            setText(""); // Clear the main text area
+          }}
           mode={props.mode}
         >
           Clear
