@@ -508,6 +508,104 @@ export default function TextForm(props) {
     }
   };
 
+ const ToWords = () => {
+   if (!text) {
+     props.showAlert("Nothing to convert!", "warning");
+     return;
+   }
+   saveToHistory(text);
+
+   // Function to convert numbers to Indian numbering words
+   const numberToWordsIndian = (num) => {
+     if (num === 0) return "Zero";
+
+     const ones = [
+       "",
+       "One",
+       "Two",
+       "Three",
+       "Four",
+       "Five",
+       "Six",
+       "Seven",
+       "Eight",
+       "Nine",
+       "Ten",
+       "Eleven",
+       "Twelve",
+       "Thirteen",
+       "Fourteen",
+       "Fifteen",
+       "Sixteen",
+       "Seventeen",
+       "Eighteen",
+       "Nineteen",
+     ];
+     const tens = [
+       "",
+       "",
+       "Twenty",
+       "Thirty",
+       "Forty",
+       "Fifty",
+       "Sixty",
+       "Seventy",
+       "Eighty",
+       "Ninety",
+     ];
+
+     function convertLessThanThousand(n) {
+       let result = "";
+       if (n >= 100) {
+         result += ones[Math.floor(n / 100)] + " Hundred ";
+         n %= 100;
+       }
+       if (n >= 11 && n <= 19) {
+         result += ones[n] + " ";
+       } else if (n >= 10 || n > 0) {
+         result += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+       }
+       return result.trim();
+     }
+
+     let parts = [];
+
+     if (num >= 10000000) {
+       // Crore
+       parts.push(
+         convertLessThanThousand(Math.floor(num / 10000000)) + " Crore"
+       );
+       num %= 10000000;
+     }
+     if (num >= 100000) {
+       // Lakh
+       parts.push(convertLessThanThousand(Math.floor(num / 100000)) + " Lakh");
+       num %= 100000;
+     }
+     if (num >= 1000) {
+       // Thousand
+       parts.push(
+         convertLessThanThousand(Math.floor(num / 1000)) + " Thousand"
+       );
+       num %= 1000;
+     }
+     if (num > 0) {
+       parts.push(convertLessThanThousand(num));
+     }
+
+     return parts.join(" ").trim();
+   };
+
+   // Replace numbers with their word equivalents
+   const textWithWords = text.replace(/\d+/g, (match) =>
+     numberToWordsIndian(parseInt(match, 10))
+   );
+
+   setText(textWithWords);
+   props.showAlert("Numbers converted to words!", "success");
+ };
+
+
   return (
     <>
       <div
@@ -625,6 +723,9 @@ export default function TextForm(props) {
         />
         <Button text="Paste" onClick={handlePaste} mode={props.mode} />
         <Button text="Copy" onClick={copyy} mode={props.mode} />
+
+        <Button text="Amount in Words" onClick={ToWords} mode={props.mode} />
+
         <button
           className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
