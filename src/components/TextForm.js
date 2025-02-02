@@ -713,6 +713,8 @@ export default function TextForm(props) {
           mode={props.mode}
         />
 
+        <Button text="Amount in Words" onClick={ToWords} mode={props.mode} />
+
         <Button text="Encrypt Text" onClick={handleEncrypt} mode={props.mode} />
         <Button text="Decrypt Text" onClick={handleDecrypt} mode={props.mode} />
         <Button
@@ -723,8 +725,6 @@ export default function TextForm(props) {
         />
         <Button text="Paste" onClick={handlePaste} mode={props.mode} />
         <Button text="Copy" onClick={copyy} mode={props.mode} />
-
-        <Button text="Amount in Words" onClick={ToWords} mode={props.mode} />
 
         <button
           className="btn btn-sm btn-warning  mx-1 my-1"
