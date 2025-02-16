@@ -593,7 +593,7 @@ export default function TextForm(props) {
        parts.push(convertLessThanThousand(num));
      }
 
-     return parts.join(" ").trim();
+     return parts.join(" ").trim() + " Only";
    };
 
    // Replace numbers with their word equivalents
