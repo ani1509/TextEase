@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import CryptoJS from "crypto-js";
 import Button from "./Button"; // Import the Button component
 import HTMLDocx from "html-docx-js/dist/html-docx";
@@ -6,6 +6,7 @@ import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
 
 
 export default function TextForm(props) {
+  const textAreaRef = useRef(null);
   const [text, setText] = useState("");
   const [findValue, setFindValue] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
@@ -13,7 +14,7 @@ export default function TextForm(props) {
   const [redoHistory, setRedoHistory] = useState([]); // Redo stack to store undone actions
   const [isReading, setIsReading] = useState(false); // Track if reading is in progress
 
-  // Handle text changes in the main textarea
+    // Handle text changes in the main textarea
   const handleTextChange = (event) => {
     // Save current text to history before updating
     setHistory([...history, text]);
@@ -554,19 +555,24 @@ export default function TextForm(props) {
        "Ninety",
      ];
 
-     function convertLessThanThousand(n) {
-       let result = "";
-       if (n >= 100) {
-         result += ones[Math.floor(n / 100)] + " Hundred ";
-         n %= 100;
-       }
-       if (n >= 11 && n <= 19) {
-         result += ones[n] + " ";
-       } else if (n >= 10 || n > 0) {
-         result += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
-       }
-       return result.trim();
-     }
+    function convertLessThanThousand(n) {
+      let result = "";
+
+      if (n >= 100) {
+        result += ones[Math.floor(n / 100)] + " Hundred ";
+        n %= 100;
+      }
+
+      if (n > 0 && n <= 19) {
+        // 🔹 Fix: Ensures `10` correctly maps to "Ten"
+        result += ones[n] + " ";
+      } else if (n >= 20) {
+        result += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+      }
+
+      return result.trim();
+    }
+
 
      let parts = [];
 
@@ -605,6 +611,99 @@ export default function TextForm(props) {
    props.showAlert("Numbers converted to words!", "success");
  };
 
+useEffect(() => {
+  const handleKeyDown = (event) => {
+    const isAltKey = event.altKey || event.getModifierState("AltGraph");
+
+    if (isAltKey && event.key.toLowerCase() === "c") {
+      event.preventDefault();
+      copyy();
+    }
+    if (isAltKey && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      handleUndo();
+    }
+    if (isAltKey && event.key.toLowerCase() === "y") {
+      event.preventDefault();
+      handleRedo();
+    }
+    if (isAltKey && event.key.toLowerCase() === "v") {
+      event.preventDefault();
+      handlePaste();
+    }
+    if (isAltKey && event.key.toLowerCase() === "w") {
+      event.preventDefault();
+      ToWords();
+    }
+    if (isAltKey && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      clearr();
+    }
+    if (isAltKey && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      handleReadAloud();
+    }
+    if (isAltKey && event.key.toLowerCase() === "p") {
+      event.preventDefault();
+      if (textAreaRef.current) {
+        textAreaRef.current.focus();
+      }
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+  // eslint-disable-next-line
+}, [ToWords,clearr,handlePaste,handleRedo,handleUndo,handleReadAloud]);
+
+//  useEffect(() => {
+//    const handleKeyDown = (event) => {
+//      if (event.altKey && event.key.toLowerCase() === "c") {
+//        event.preventDefault(); // Prevent default browser copy action
+//        copyy();
+//      }
+//      if (event.altKey && event.key.toLowerCase() === "z") {
+//        event.preventDefault(); // Prevent default browser undo action
+//        handleUndo();
+//      }
+//      if (event.altKey && event.key.toLowerCase() === "y") {
+//        event.preventDefault(); // Prevent default browser undo action
+//        handleRedo();
+//      }
+//      if (event.altKey && event.key.toLowerCase() === "v") {
+//        event.preventDefault(); // Prevent default browser paste action
+//        handlePaste();
+//      }
+//      if (event.altKey && event.key.toLowerCase() === "w") {
+//        event.preventDefault(); // Prevent default browser paste action
+//        ToWords();
+//      }
+
+//      if (event.altKey && event.key.toLowerCase() === "k") {
+//        event.preventDefault(); // Prevent default browser paste action
+//        clearr();
+//      }
+
+//      if (event.ctrlKey && event.key.toLowerCase() === "i") {
+    
+//        event.preventDefault(); // Prevents browser conflicts
+
+//        if (textAreaRef.current) {
+//          // Ensure the ref is available
+//          textAreaRef.current.focus(); // Moves focus to textarea
+//        }
+//      }
+//    };
+
+//    document.addEventListener("keydown", handleKeyDown);
+
+//    return () => {
+//      document.removeEventListener("keydown", handleKeyDown);
+//    };
+//  }, [ToWords]);
 
   return (
     <>
@@ -615,18 +714,23 @@ export default function TextForm(props) {
         }}
       >
         <h4>{props.heading}</h4>
+
         <textarea
           className="form-control"
           value={text}
           onChange={handleTextChange}
           id="myBox"
           rows="8"
+          ref={textAreaRef} // Reference to access the textarea
+          autoFocus // Automatically focuses on the textarea when the page loads
           style={{
             backgroundColor: props.mode === "dark" ? "#0f1118" : "#ebdfdf",
             color: props.mode === "dark" ? "white" : "#042743",
             borderColor: props.mode === "dark" ? "white" : "#042743",
           }}
-        ></textarea>
+          // placeholder="Ctrl+/ for keyboard shortcuts"
+        >
+        </textarea>
 
         <div className="find-replace-section">
           <input
@@ -763,7 +867,7 @@ export default function TextForm(props) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            Download As
+            Download
           </button>
           <ul className="dropdown-menu">
             <li>
