@@ -1,20 +1,31 @@
-import React, { useState,useEffect,useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import { QRCodeCanvas } from "qrcode.react"; // Import QR Code generator
 import CryptoJS from "crypto-js";
 import Button from "./Button"; // Import the Button component
 import HTMLDocx from "html-docx-js/dist/html-docx";
-import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
+import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
 
+import { toCanvas } from "qrcode"; // Import QR Code generator function
 
-export default function TextForm(props) {
+export default function TextForm({ mode, showAlert, heading }) {
   const textAreaRef = useRef(null);
+  const qrRef = useRef(null); // Create a ref for the QRCodeCanvas
+
   const [text, setText] = useState("");
   const [findValue, setFindValue] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
   const [history, setHistory] = useState([]); // History stack to store previous states
   const [redoHistory, setRedoHistory] = useState([]); // Redo stack to store undone actions
   const [isReading, setIsReading] = useState(false); // Track if reading is in progress
+  const [qrText, setQrText] = useState("");
 
-    // Handle text changes in the main textarea
+  // Handle text changes in the main textarea
   const handleTextChange = (event) => {
     // Save current text to history before updating
     setHistory([...history, text]);
@@ -22,10 +33,32 @@ export default function TextForm(props) {
     setRedoHistory([]); // Clear redo history whenever new text is typed
   };
 
+  // const handleGenerateQR = () => {
+  const handleGenerateQR = useCallback(() => {
+    if (text.trim() === "") {
+      showAlert("Enter some text to generate QR Code!", "warning");
+      return;
+    }
+
+    if (qrText) {
+      // If QR is already generated, remove it
+      setQrText("");
+      showAlert("QR Code Removed!", "warning");
+    } else if (text.trim()) {
+      setQrText(text); // Generate QR only if text is not empty
+    } else {
+      setQrText(text);
+      showAlert("QR Code Generated!", "success");
+    }
+  }, [text, showAlert, qrText]); // Dependencies
+
+  // };
+
   // Share options for Gmail, WhatsApp, and X
+
   const handleShare = (platform) => {
     if (!text) {
-      props.showAlert("No text to share!", "warning");
+      showAlert("No text to share!", "warning");
       return;
     }
 
@@ -54,68 +87,225 @@ export default function TextForm(props) {
 
     // Open the respective platform's share URL
     window.open(shareUrl, "_blank");
-    props.showAlert("Sharing initiated!", "success");
+    showAlert("Sharing initiated!", "success");
   };
 
+  // const handleDownloadAs = (format) => {
+  //   if (!text) {
+  //     showAlert("No text to download!", "warning");
+  //     return;
+  //   }
+
+  //   if (format === "pdf") {
+  //     const doc = new jsPDF();
+  //     doc.text(text, 10, 10);
+  //     doc.save("document.pdf");
+  //     showAlert("PDF file is ready for download!", "success");
+  //   } else if (format === "word") {
+  //     const content = `<html><body><p>${text}</p></body></html>`;
+  //     const converted = HTMLDocx.asBlob(content);
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(converted);
+  //     link.download = "document.docx";
+  //     link.click();
+  //     showAlert("Word file is ready for download!", "success");
+  //   } else if (format === "text") {
+  //     const blob = new Blob([text], { type: "text/plain" });
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(blob);
+  //     link.download = "document.txt";
+  //     link.click();
+  //     showAlert("Text file is ready for download!", "success");
+  //   } else if (format === "qr") {
+  //     if (!qrText) {
+  //       showAlert("No QR code to download!", "warning");
+  //       return;
+  //     }
+  //     const canvas = document.querySelector("canvas"); // Get QR code canvas
+  //     const qrImage = canvas.toDataURL("image/png"); // Convert to image
+  //     const link = document.createElement("a");
+  //     link.href = qrImage;
+  //     link.download = "QRCode.png";
+  //     link.click();
+  //     showAlert("QR Code downloaded!", "success");
+  //   }
+  // };
+
+  // const handleDownloadAs = (format) => {
+  //   if (!text) {
+  //     showAlert("No text to download!", "warning");
+  //     return;
+  //   }
+
+  //   if (format === "pdf") {
+  //     const doc = new jsPDF();
+  //     doc.text(text, 10, 10);
+  //     doc.save("document.pdf");
+  //     showAlert("PDF file is ready for download!", "success");
+  //   } else if (format === "word") {
+  //     const content = `<html><body><p>${text}</p></body></html>`;
+  //     const converted = HTMLDocx.asBlob(content);
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(converted);
+  //     link.download = "document.docx";
+  //     link.click();
+  //     showAlert("Word file is ready for download!", "success");
+  //   } else if (format === "text") {
+  //     const blob = new Blob([text], { type: "text/plain" });
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(blob);
+  //     link.download = "document.txt";
+  //     link.click();
+  //     showAlert("Text file is ready for download!", "success");
+  //   } else if (format === "qr") {
+  //     if (!qrText) {
+  //       showAlert("No QR code to download!", "warning");
+  //       return;
+  //     }
+
+  //     const canvas = qrRef.current.querySelector("canvas"); // Get the QR code canvas
+  //     if (canvas) {
+  //       const qrImage = canvas.toDataURL("image/png"); // Convert to image
+  //       const link = document.createElement("a");
+  //       link.href = qrImage;
+  //       link.download = "QRCode.png";
+  //       link.click();
+  //       showAlert("QR Code downloaded!", "success");
+  //     } else {
+  //       showAlert("QR Code generation failed!", "error");
+  //     }
+  //   }
+  // };
+
+  // const handleDownloadAs = (format) => {
+  //   if (!text) {
+  //     showAlert("No text to download!", "warning");
+  //     return;
+  //   }
+
+  //   if (format === "pdf") {
+  //     const doc = new jsPDF();
+  //     doc.text(text, 10, 10);
+  //     doc.save("document.pdf");
+  //     showAlert("PDF file is ready for download!", "success");
+  //   } else if (format === "word") {
+  //     const content = `<html><body><p>${text}</p></body></html>`;
+  //     const converted = HTMLDocx.asBlob(content);
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(converted);
+  //     link.download = "document.docx";
+  //     link.click();
+  //     showAlert("Word file is ready for download!", "success");
+  //   } else if (format === "text") {
+  //     const blob = new Blob([text], { type: "text/plain" });
+  //     const link = document.createElement("a");
+  //     link.href = URL.createObjectURL(blob);
+  //     link.download = "document.txt";
+  //     link.click();
+  //     showAlert("Text file is ready for download!", "success");
+  //   } else if (format === "qr") {
+  //     if (!qrText) {
+  //       showAlert("No QR code to download!", "warning");
+  //       return;
+  //     }
+
+  //     const canvas = qrRef.current.querySelector("canvas"); // Get QR code canvas
+  //     if (!canvas) {
+  //       showAlert("QR code generation failed!", "error");
+  //       return;
+  //     }
+
+  //     const qrImage = canvas.toDataURL("image/png", 1.0); // 1.0 ensures best quality
+  //     const link = document.createElement("a");
+  //     link.href = qrImage;
+  //     link.download = "QRCode.png";
+  //     link.click();
+
+  //     showAlert("QR Code downloaded!", "success");
+  //   }
+  // };
+
+  // Handle Undo functionality
+
   const handleDownloadAs = (format) => {
-    if (!text) {
-      props.showAlert("No text to download!", "warning");
+    if (!text.trim()) {
+      showAlert("No text to download!", "warning");
       return;
     }
 
     if (format === "pdf") {
-      // Generate PDF
       const doc = new jsPDF();
       doc.text(text, 10, 10);
       doc.save("document.pdf");
-      props.showAlert("PDF file is ready for download!", "success");
+      showAlert("PDF file is ready for download!", "success");
     } else if (format === "word") {
-      // Generate Word file
       const content = `<html><body><p>${text}</p></body></html>`;
       const converted = HTMLDocx.asBlob(content);
       const link = document.createElement("a");
       link.href = URL.createObjectURL(converted);
       link.download = "document.docx";
       link.click();
-      props.showAlert("Word file is ready for download!", "success");
+      showAlert("Word file is ready for download!", "success");
     } else if (format === "text") {
-      // Generate Text file
       const blob = new Blob([text], { type: "text/plain" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "document.txt";
       link.click();
-      props.showAlert("Text file is ready for download!", "success");
+      showAlert("Text file is ready for download!", "success");
+    } else if (format === "qr") {
+      if (!text.trim()) {
+        showAlert("No text available to generate QR code!", "warning");
+        return;
+      }
+
+      // Generate a fresh QR code dynamically
+      const qrCanvas = document.createElement("canvas");
+      toCanvas(qrCanvas, text, { width: 300 }, (error) => {
+        if (error) {
+          showAlert("QR Code generation failed!", "danger");
+          return;
+        }
+
+        // Convert QR code to image
+        const qrImage = qrCanvas.toDataURL("image/png", 1.0); // Ensure high quality
+        const link = document.createElement("a");
+        link.href = qrImage;
+        link.download = "QRCode.png";
+        link.click();
+        showAlert("QR Code downloaded!", "success");
+      });
     }
   };
 
-  // Handle Undo functionality
-  const handleUndo = () => {
-    if (history.length > 0) {
-      const previousText = history[history.length - 1];
-      setRedoHistory([text, ...redoHistory]); // Store current text in redo stack
-      setText(previousText);
-      setHistory(history.slice(0, -1)); // Remove last entry from history stack
-      props.showAlert("Undone!", "success");
-    } else {
-      props.showAlert("Nothing to undo!", "warning");
-    }
-  };
+  // const handleUndo = () => {
+  //   if (history.length > 0) {
+  //     const previousText = history[history.length - 1];
+  //     setRedoHistory([text, ...redoHistory]); // Store current text in redo stack
+  //     setText(previousText);
+  //     setHistory(history.slice(0, -1)); // Remove last entry from history stack
+  //     showAlert("Undone!", "success");
+  //   } else {
+  //     showAlert("Nothing to undo!", "warning");
+  //   }
+  // };
 
   // Handle Redo functionality
-  const handleRedo = () => {
-    if (redoHistory.length > 0) {
-      const redoText = redoHistory[0];
-      setHistory([...history, text]); // Store current text in undo history
-      setText(redoText);
-      setRedoHistory(redoHistory.slice(1)); // Remove the first entry from redo stack
-      props.showAlert("Redone!", "success");
-    } else {
-      props.showAlert("Nothing to redo!", "warning");
-    }
-  };
+
+  // const handleRedo = () => {
+  //   if (redoHistory.length > 0) {
+  //     const redoText = redoHistory[0];
+  //     setHistory([...history, text]); // Store current text in undo history
+  //     setText(redoText);
+  //     setRedoHistory(redoHistory.slice(1)); // Remove the first entry from redo stack
+  //     showAlert("Redone!", "success");
+  //   } else {
+  //     showAlert("Nothing to redo!", "warning");
+  //   }
+  // };
 
   // Handle changes in the Find input box
+
   const handleFindChange = (e) => {
     setFindValue(e.target.value); // Update find input value
   };
@@ -130,7 +320,7 @@ export default function TextForm(props) {
   const handleFindAndReplace = () => {
     // Check if findValue is empty
     if (!findValue) {
-      props.showAlert("Please enter text to find!", "warning");
+      showAlert("Please enter text to find!", "warning");
       return;
     }
 
@@ -142,7 +332,7 @@ export default function TextForm(props) {
 
     // Check if the findValue exists in the text
     if (!regex.test(text)) {
-      props.showAlert(`"${findValue}" not found in the text!`, "warning");
+      showAlert(`"${findValue}" not found in the text!`, "warning");
       return;
     }
 
@@ -156,40 +346,47 @@ export default function TextForm(props) {
     setText(updatedText);
 
     // Show success alert
-    props.showAlert("Find and Replace completed!", "success");
+    showAlert("Find and Replace completed!", "success");
   };
 
   // Save current text to history
-  const saveToHistory = (currentText) => {
-    setHistory([...history, currentText]);
-  };
+  // const saveToHistory = (currentText) => {
+  //   setHistory([...history, currentText]);
+  // };
+
+  const saveToHistory = useCallback(
+    (currentText) => {
+      setHistory((prevHistory) => [...prevHistory, currentText]);
+    },
+    [setHistory] //  Added setHistory as a dependency
+  );
 
   // Convert text to uppercase
   const hanldeUpClick = () => {
     if (!text) {
-      props.showAlert("Nothing to convert to uppercase!", "warning");
+      showAlert("Nothing to convert to uppercase!", "warning");
       return;
     }
     saveToHistory(text);
     setText(text.toUpperCase());
-    props.showAlert("Changed to uppercase!", "success");
+    showAlert("Changed to uppercase!", "success");
   };
 
   // Convert text to lowercase
   const hanldeLowClick = () => {
     if (!text) {
-      props.showAlert("Nothing to convert to lowercase!", "warning");
+      showAlert("Nothing to convert to lowercase!", "warning");
       return;
     }
     saveToHistory(text);
     setText(text.toLowerCase());
-    props.showAlert("Changed to lowercase!", "success");
+    showAlert("Changed to lowercase!", "success");
   };
 
   // Capitalize first letter of each word
   const capital = () => {
     if (!text) {
-      props.showAlert("Nothing to capitalize!", "warning");
+      showAlert("Nothing to capitalize!", "warning");
       return;
     }
     saveToHistory(text);
@@ -203,21 +400,19 @@ export default function TextForm(props) {
       )
       .join("\n");
     setText(capitalizedText);
-    props.showAlert("Capitalized!", "success");
+    showAlert("Capitalized!", "success");
   };
-
 
   const removeNumbers = () => {
     if (!text) {
-      props.showAlert("Nothing to process!", "warning");
+      showAlert("Nothing to process!", "warning");
       return;
     }
     saveToHistory(text);
     const textWithoutNumbers = text.replace(/\d+/g, ""); // Removes all numbers
     setText(textWithoutNumbers);
-    props.showAlert("Numbers removed!", "success");
+    showAlert("Numbers removed!", "success");
   };
-
 
   // Function to remove special characters except letters, numbers, and spaces
   const removeSpecialCharacters = () => {
@@ -233,13 +428,66 @@ export default function TextForm(props) {
 
     // Update the text state with the sanitized text
     setText(updatedText);
-    props.showAlert("Unnecessary special characters removed!", "success");
+    showAlert("Unnecessary special characters removed!", "success");
   };
 
+  // Fallback method using execCommand
+  // const fallbackCopyToClipboard = (text) => {
+  //   try {
+  //     const textArea = document.createElement("textarea");
+  //     textArea.value = text;
+  //     textArea.style.position = "fixed"; // Prevent scrolling to bottom
+  //     textArea.style.opacity = "0"; // Hide the textarea
+  //     document.body.appendChild(textArea);
+  //     textArea.focus();
+  //     textArea.select();
+
+  //     const successful = document.execCommand("copy");
+  //     document.body.removeChild(textArea);
+
+  //     if (successful) {
+  //       showAlert("Text copied to clipboard!", "success");
+  //     } else {
+  //       showAlert("Failed to copy text!", "danger");
+  //     }
+  //   } catch (err) {
+  //     console.error("Fallback copy failed:", err);
+  //     showAlert("Copying is not supported on this device!", "danger");
+  //   }
+  // };
+
+  const fallbackCopyToClipboard = useCallback(
+    (text) => {
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed"; // Prevent scrolling to bottom
+        textArea.style.opacity = "0"; // Hide the textarea
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textArea);
+
+        if (successful) {
+          showAlert("Text copied to clipboard!", "success");
+        } else {
+          showAlert("Failed to copy text!", "danger");
+        }
+      } catch (err) {
+        console.error("Fallback copy failed:", err);
+        showAlert("Copying is not supported on this device!", "danger");
+      }
+    },
+    [showAlert]
+  ); //  Wrapped inside useCallback & added `showAlert` as a dependency
+
   // Copy text to clipboard
-  const copyy = () => {
+  // const copyy = () => {
+  const copyy = useCallback(() => {
     if (!text) {
-      props.showAlert("Nothing to copy!", "warning");
+      showAlert("Nothing to copy!", "warning");
       return;
     }
 
@@ -248,7 +496,7 @@ export default function TextForm(props) {
       navigator.clipboard
         .writeText(text)
         .then(() => {
-          props.showAlert("Text copied to clipboard!", "success");
+          showAlert("Text copied to clipboard!", "success");
         })
         .catch((err) => {
           console.error("Clipboard API failed:", err);
@@ -258,53 +506,33 @@ export default function TextForm(props) {
       // Fallback for unsupported browsers
       fallbackCopyToClipboard(text);
     }
-  };
+  }, [text, showAlert, fallbackCopyToClipboard]);
 
-  // Fallback method using execCommand
-  const fallbackCopyToClipboard = (text) => {
-    try {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed"; // Prevent scrolling to bottom
-      textArea.style.opacity = "0"; // Hide the textarea
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      const successful = document.execCommand("copy");
-      document.body.removeChild(textArea);
-
-      if (successful) {
-        props.showAlert("Text copied to clipboard!", "success");
-      } else {
-        props.showAlert("Failed to copy text!", "danger");
-      }
-    } catch (err) {
-      console.error("Fallback copy failed:", err);
-      props.showAlert("Copying is not supported on this device!", "danger");
-    }
-  };
+  // };
 
   // Clear text
-  const clearr = () => {
+  // const clearr = () => {
+  const clearr = useCallback(() => {
     if (!text) {
-      props.showAlert("Nothing to clear!", "warning");
+      showAlert("Nothing to clear!", "warning");
       return;
     }
     saveToHistory(text);
     setText("");
-    props.showAlert("Text cleared!", "success");
-  };
+    showAlert("Text cleared!", "success");
+
+    // };
+  }, [setText, showAlert, text, saveToHistory]);
 
   // Remove extra spaces
   const rmvExtraSpc = () => {
     if (!text) {
-      props.showAlert("Nothing to process !", "warning");
+      showAlert("Nothing to process !", "warning");
       return;
     }
     saveToHistory(text);
     setText(text.split(/[ ]+/).join(" "));
-    props.showAlert("Removed extra spaces!", "success");
+    showAlert("Removed extra spaces!", "success");
   };
 
   // Add numbering to list
@@ -316,10 +544,7 @@ export default function TextForm(props) {
 
     // Check if there are any non-blank lines
     if (nonBlankLines.length === 0) {
-      props.showAlert(
-        "No content to number after removing blank lines!",
-        "warning"
-      );
+      showAlert("No content to number after removing blank lines!", "warning");
       return;
     }
 
@@ -339,13 +564,13 @@ export default function TextForm(props) {
     // Update the text state with the new numbered text
     setText(numberedText);
 
-    props.showAlert("Line numbers added successfully!", "success");
+    showAlert("Line numbers added successfully!", "success");
   };
 
   // Sort text alphabetically
   const handleSortButtonClick = () => {
     if (!text) {
-      props.showAlert("Nothing to sort!", "warning");
+      showAlert("Nothing to sort!", "warning");
       return;
     }
     saveToHistory(text);
@@ -356,13 +581,13 @@ export default function TextForm(props) {
       .join("\n")
       .trim();
     setText(sortedText);
-    props.showAlert("List sorted!", "success");
+    showAlert("List sorted!", "success");
   };
 
-    // Encrypt the text
+  // Encrypt the text
   const handleEncrypt = () => {
     if (!text) {
-      props.showAlert("Please enter text to encrypt!", "warning");
+      showAlert("Please enter text to encrypt!", "warning");
       return;
     }
     const secretKey = prompt("Enter a secret key for encryption:");
@@ -370,16 +595,16 @@ export default function TextForm(props) {
       const encryptedText = CryptoJS.AES.encrypt(text, secretKey).toString();
       saveToHistory(text);
       setText(encryptedText);
-      props.showAlert("Text encrypted!", "success");
+      showAlert("Text encrypted!", "success");
     } else {
-      props.showAlert("Encryption key is required!", "danger");
+      showAlert("Encryption key is required!", "danger");
     }
   };
 
   // Decrypt the text
   const handleDecrypt = () => {
     if (!text) {
-      props.showAlert("Please enter text to decrypt!", "warning");
+      showAlert("Please enter text to decrypt!", "warning");
       return;
     }
     const secretKey = prompt("Enter the secret key for decryption:");
@@ -390,44 +615,76 @@ export default function TextForm(props) {
         if (!decryptedText) throw new Error();
         saveToHistory(text);
         setText(decryptedText);
-        props.showAlert("Text decrypted!", "success");
+        showAlert("Text decrypted!", "success");
       } catch (error) {
-        props.showAlert("Invalid key or corrupted text!", "danger");
+        showAlert("Invalid key or corrupted text!", "danger");
       }
     } else {
-      props.showAlert("Decryption key is required!", "danger");
+      showAlert("Decryption key is required!", "danger");
     }
   };
 
   //  PASTE FN
-  const handlePaste = async () => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        console.log("Clipboard API is supported.");
-        // Modern Clipboard API
-        const clipboardText = await navigator.clipboard.readText();
-        console.log("Clipboard Text: ", clipboardText);
+  // const handlePaste = async () => {
+  //   const handlePaste = useCallback(async () => {
+  //   try {
+  //     if (navigator.clipboard && navigator.clipboard.readText) {
+  //       console.log("Clipboard API is supported.");
+  //       // Modern Clipboard API
+  //       const clipboardText = await navigator.clipboard.readText();
+  //       console.log("Clipboard Text: ", clipboardText);
 
-        if (!clipboardText) {
-          props.showAlert("Clipboard is empty!", "warning");
-          return;
-        }
+  //       if (!clipboardText) {
+  //         showAlert("Clipboard is empty!", "warning");
+  //         return;
+  //       }
 
-        saveToHistory(text); // Save the current text before updating
-        setText((prevText) => prevText + clipboardText);
-        props.showAlert("Text pasted from clipboard!", "success");
-      } else {
-        console.log("Clipboard API is not supported, using fallback.");
-        // Fallback for older browsers
-        fallbackPaste();
-      }
-    } catch (error) {
-      console.error("Failed to access clipboard:", error);
-      fallbackPaste(); // Attempt fallback if Clipboard API fails
-    }
-  };
+  //       saveToHistory(text); // Save the current text before updating
+  //       setText((prevText) => prevText + clipboardText);
+  //       showAlert("Text pasted from clipboard!", "success");
+  //     } else {
+  //       console.log("Clipboard API is not supported, using fallback.");
+  //       // Fallback for older browsers
+  //       fallbackPaste();
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to access clipboard:", error);
+  //     fallbackPaste(); // Attempt fallback if Clipboard API fails
+  //   }
+  //     }, [setText, showAlert, saveToHistory, text, fallbackPaste]);
 
-  const fallbackPaste = () => {
+  // // };
+
+  // const fallbackPaste = () => {
+  //   try {
+  //     const textArea = document.createElement("textarea");
+  //     document.body.appendChild(textArea);
+  //     textArea.focus();
+  //     document.execCommand("paste"); // Pasting clipboard content into textarea
+
+  //     const clipboardText = textArea.value;
+  //     console.log("Clipboard Text from Fallback: ", clipboardText);
+
+  //     document.body.removeChild(textArea);
+
+  //     if (clipboardText) {
+  //       saveToHistory(text); // Save the current text before updating
+  //       setText((prevText) => prevText + clipboardText);
+  //       showAlert("Text pasted using fallback method!", "success");
+  //     } else {
+  //       showAlert("Clipboard is empty or inaccessible!", "warning");
+  //     }
+  //   } catch (error) {
+  //     console.error("Fallback paste failed:", error);
+  //     showAlert(
+  //       "Clipboard API is not supported and fallback paste failed. Please check browser compatibility.",
+  //       "danger"
+  //     );
+  //   }
+  // };
+
+  //  Wrapped fallbackPaste in useCallback to avoid re-renders
+  const fallbackPaste = useCallback(() => {
     try {
       const textArea = document.createElement("textarea");
       document.body.appendChild(textArea);
@@ -440,39 +697,84 @@ export default function TextForm(props) {
       document.body.removeChild(textArea);
 
       if (clipboardText) {
-        saveToHistory(text); // Save the current text before updating
+        saveToHistory(text); // Save current text before updating
         setText((prevText) => prevText + clipboardText);
-        props.showAlert("Text pasted using fallback method!", "success");
+        showAlert("Text pasted using fallback method!", "success");
       } else {
-        props.showAlert("Clipboard is empty or inaccessible!", "warning");
+        showAlert("Clipboard is empty or inaccessible!", "warning");
       }
     } catch (error) {
       console.error("Fallback paste failed:", error);
-      props.showAlert(
+      showAlert(
         "Clipboard API is not supported and fallback paste failed. Please check browser compatibility.",
         "danger"
       );
     }
-  };
+  }, [setText, showAlert, saveToHistory, text]); //  Ensures proper dependency handling
+
+  const handlePaste = useCallback(async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        console.log("Clipboard API is supported.");
+        // Modern Clipboard API
+        const clipboardText = await navigator.clipboard.readText();
+        console.log("Clipboard Text: ", clipboardText);
+
+        if (!clipboardText) {
+          showAlert("Clipboard is empty!", "warning");
+          return;
+        }
+
+        saveToHistory(text); // Save current text before updating
+        setText((prevText) => prevText + clipboardText);
+        showAlert("Text pasted from clipboard!", "success");
+      } else {
+        console.log("Clipboard API not supported, using fallback.");
+        fallbackPaste(); // Call the fallback method
+      }
+    } catch (error) {
+      console.error("Failed to access clipboard:", error);
+      fallbackPaste(); // Fallback if Clipboard API fails
+    }
+  }, [setText, showAlert, saveToHistory, text, fallbackPaste]);
 
   // Count words, characters, and letters
-  const wordCount = text.split(/\s+/).filter((el) => el.length !== 0).length;
-  const charCount = text.length;
-  const letterCount = text
-    .split("")
-    .filter((char) => /[a-zA-Z]/.test(char)).length;
+  // const wordCount = text.split(/\s+/).filter((el) => el.length !== 0).length;
+  // const charCount = text.length;
+  // const letterCount = text
+  //   .split("")
+  //   .filter((char) => /[a-zA-Z]/.test(char)).length;
 
-  const sentenceCount = text
-    .split(/[.!?]+/)
-    .filter((el) => el.trim() !== "").length;
-  const paragraphCount = text
-    .split(/\n+/)
-    .filter((el) => el.trim() !== "").length;
+  // const sentenceCount = text
+  //   .split(/[.!?]+/)
+  //   .filter((el) => el.trim() !== "").length;
+  // const paragraphCount = text
+  //   .split(/\n+/)
+  //   .filter((el) => el.trim() !== "").length;
+
+  const wordCount = useMemo(
+    () => text.split(/\s+/).filter((el) => el.length !== 0).length,
+    [text]
+  );
+  const charCount = useMemo(() => text.length, [text]);
+  const letterCount = useMemo(
+    () => text.split("").filter((char) => /[a-zA-Z]/.test(char)).length,
+    [text]
+  );
+  const sentenceCount = useMemo(
+    () => text.split(/[.!?]+/).filter((el) => el.trim() !== "").length,
+    [text]
+  );
+  const paragraphCount = useMemo(
+    () => text.split(/\n+/).filter((el) => el.trim() !== "").length,
+    [text]
+  );
 
   // Read alod functionality
-  const handleReadAloud = () => {
+  // const handleReadAloud = () => {
+  const handleReadAloud = useCallback(() => {
     if (text.trim() === "") {
-      props.showAlert("No text to read!", "warning");
+      showAlert("No text to read!", "warning");
       return;
     }
 
@@ -496,224 +798,417 @@ export default function TextForm(props) {
 
     // Speak the text
     window.speechSynthesis.speak(speech);
-    props.showAlert("Reading aloud!", "success");
-  };
+    showAlert("Reading aloud!", "success");
+  }, [text, showAlert]);
+
+  // };
 
   const handleStop = () => {
     if (isReading) {
       window.speechSynthesis.cancel(); // Stops the speech immediately
-      props.showAlert("Reading stopped!", "warning");
+      showAlert("Reading stopped!", "warning");
       setIsReading(false); // Reset reading state
     } else {
-      props.showAlert("No speech is being read", "info"); // If nothing is being read
+      showAlert("No speech is being read", "info"); // If nothing is being read
     }
   };
 
- const ToWords = () => {
-   if (!text) {
-     props.showAlert("Nothing to convert!", "warning");
-     return;
-   }
-   saveToHistory(text);
+  const ToWords = useCallback(() => {
+    // const ToWords = () => {
+    if (!text) {
+      showAlert("Nothing to convert!", "warning");
+      return;
+    }
+    saveToHistory(text);
 
-   // Function to convert numbers to Indian numbering words
-   const numberToWordsIndian = (num) => {
-     if (num === 0) return "Zero";
+    // Function to convert numbers to Indian numbering words
+    const numberToWordsIndian = (num) => {
+      if (num === 0) return "Zero";
 
-     const ones = [
-       "",
-       "One",
-       "Two",
-       "Three",
-       "Four",
-       "Five",
-       "Six",
-       "Seven",
-       "Eight",
-       "Nine",
-       "Ten",
-       "Eleven",
-       "Twelve",
-       "Thirteen",
-       "Fourteen",
-       "Fifteen",
-       "Sixteen",
-       "Seventeen",
-       "Eighteen",
-       "Nineteen",
-     ];
-     const tens = [
-       "",
-       "",
-       "Twenty",
-       "Thirty",
-       "Forty",
-       "Fifty",
-       "Sixty",
-       "Seventy",
-       "Eighty",
-       "Ninety",
-     ];
+      const ones = [
+        "",
+        "One",
+        "Two",
+        "Three",
+        "Four",
+        "Five",
+        "Six",
+        "Seven",
+        "Eight",
+        "Nine",
+        "Ten",
+        "Eleven",
+        "Twelve",
+        "Thirteen",
+        "Fourteen",
+        "Fifteen",
+        "Sixteen",
+        "Seventeen",
+        "Eighteen",
+        "Nineteen",
+      ];
+      const tens = [
+        "",
+        "",
+        "Twenty",
+        "Thirty",
+        "Forty",
+        "Fifty",
+        "Sixty",
+        "Seventy",
+        "Eighty",
+        "Ninety",
+      ];
 
-    function convertLessThanThousand(n) {
-      let result = "";
+      function convertLessThanThousand(n) {
+        let result = "";
 
-      if (n >= 100) {
-        result += ones[Math.floor(n / 100)] + " Hundred ";
-        n %= 100;
+        if (n >= 100) {
+          result += ones[Math.floor(n / 100)] + " Hundred ";
+          n %= 100;
+        }
+
+        if (n > 0 && n <= 19) {
+          // 🔹 Fix: Ensures `10` correctly maps to "Ten"
+          result += ones[n] + " ";
+        } else if (n >= 20) {
+          result += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+        }
+
+        return result.trim();
       }
 
-      if (n > 0 && n <= 19) {
-        // 🔹 Fix: Ensures `10` correctly maps to "Ten"
-        result += ones[n] + " ";
-      } else if (n >= 20) {
-        result += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+      let parts = [];
+
+      if (num >= 10000000) {
+        // Crore
+        parts.push(
+          convertLessThanThousand(Math.floor(num / 10000000)) + " Crore"
+        );
+        num %= 10000000;
+      }
+      if (num >= 100000) {
+        // Lakh
+        parts.push(convertLessThanThousand(Math.floor(num / 100000)) + " Lakh");
+        num %= 100000;
+      }
+      if (num >= 1000) {
+        // Thousand
+        parts.push(
+          convertLessThanThousand(Math.floor(num / 1000)) + " Thousand"
+        );
+        num %= 1000;
+      }
+      if (num > 0) {
+        parts.push(convertLessThanThousand(num));
       }
 
-      return result.trim();
-    }
+      return parts.join(" ").trim() + " Only";
+    };
 
+    // Replace numbers with their word equivalents
+    const textWithWords = text.replace(/\d+/g, (match) =>
+      numberToWordsIndian(parseInt(match, 10))
+    );
 
-     let parts = [];
+    setText(textWithWords);
+    showAlert("Numbers converted to words!", "success");
+  }, [text, showAlert, saveToHistory]);
 
-     if (num >= 10000000) {
-       // Crore
-       parts.push(
-         convertLessThanThousand(Math.floor(num / 10000000)) + " Crore"
-       );
-       num %= 10000000;
-     }
-     if (num >= 100000) {
-       // Lakh
-       parts.push(convertLessThanThousand(Math.floor(num / 100000)) + " Lakh");
-       num %= 100000;
-     }
-     if (num >= 1000) {
-       // Thousand
-       parts.push(
-         convertLessThanThousand(Math.floor(num / 1000)) + " Thousand"
-       );
-       num %= 1000;
-     }
-     if (num > 0) {
-       parts.push(convertLessThanThousand(num));
-     }
+  // };
 
-     return parts.join(" ").trim() + " Only";
-   };
+  // useEffect(() => {
+  //   const handleKeyDown = (event) => {
+  //     const isAltKey = event.altKey || event.getModifierState("AltGraph");
 
-   // Replace numbers with their word equivalents
-   const textWithWords = text.replace(/\d+/g, (match) =>
-     numberToWordsIndian(parseInt(match, 10))
-   );
+  //     if (isAltKey && event.key.toLowerCase() === "c") {
+  //       event.preventDefault();
+  //       copyy();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "z") {
+  //       event.preventDefault();
+  //       handleUndo();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "y") {
+  //       event.preventDefault();
+  //       handleRedo();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "v") {
+  //       event.preventDefault();
+  //       handlePaste();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "w") {
+  //       event.preventDefault();
+  //       ToWords();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "k") {
+  //       event.preventDefault();
+  //       clearr();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "s") {
+  //       event.preventDefault();
+  //       handleReadAloud();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "p") {
+  //       event.preventDefault();
+  //       if (textAreaRef.current) {
+  //         textAreaRef.current.focus();
+  //       }
+  //     }
+  //   };
 
-   setText(textWithWords);
-   props.showAlert("Numbers converted to words!", "success");
- };
+  //   document.addEventListener("keydown", handleKeyDown);
 
-useEffect(() => {
-  const handleKeyDown = (event) => {
-    const isAltKey = event.altKey || event.getModifierState("AltGraph");
+  //   return () => {
+  //     document.removeEventListener("keydown", handleKeyDown);
+  //   };
+  //   // eslint-disable-next-line
+  // }, [ToWords,clearr,handlePaste,handleRedo,handleUndo,handleReadAloud]);
 
-    if (isAltKey && event.key.toLowerCase() === "c") {
-      event.preventDefault();
-      copyy();
+  // const handleKeyDown = useCallback(
+  //   (event) => {
+  //     const isAltKey = event.altKey || event.getModifierState("AltGraph");
+
+  //     if (isAltKey && event.key.toLowerCase() === "c") {
+  //       event.preventDefault();
+  //       copyy();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "z") {
+  //       event.preventDefault();
+  //       handleUndo();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "y") {
+  //       event.preventDefault();
+  //       handleRedo();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "v") {
+  //       event.preventDefault();
+  //       handlePaste();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "w") {
+  //       event.preventDefault();
+  //       ToWords();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "k") {
+  //       event.preventDefault();
+  //       clearr();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "s") {
+  //       event.preventDefault();
+  //       handleReadAloud();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "q") {
+  //       event.preventDefault();
+  //       handleGenerateQR();
+  //     }
+  //     if (isAltKey && event.key.toLowerCase() === "p") {
+  //       event.preventDefault();
+  //       if (textAreaRef.current) {
+  //         textAreaRef.current.focus();
+  //       }
+  //     }
+  //   },
+  //   [
+  //     copyy,
+  //     handleUndo,
+  //     handleRedo,
+  //     handlePaste,
+  //     ToWords,
+  //     clearr,
+  //     handleReadAloud,
+  //   ]
+  // );
+
+  // useEffect(() => {
+  //   document.addEventListener("keydown", handleKeyDown);
+
+  //   return () => {
+  //     document.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, [handleKeyDown]);
+
+  // const handleKeyDown = useCallback(
+  //   (event) => {
+  //     const isAltKey = event.altKey || event.getModifierState("AltGraph");
+
+  //     const keyActions = {
+  //       c: copyy,
+  //       z: handleUndo,
+  //       y: handleRedo,
+  //       v: handlePaste,
+  //       w: ToWords,
+  //       k: clearr,
+  //       s: handleReadAloud,
+  //       q: handleGenerateQR,
+  //       p: () => textAreaRef.current?.focus(),
+  //     };
+
+  //     const action = keyActions[event.key.toLowerCase()];
+  //     if (isAltKey && action) {
+  //       event.preventDefault();
+  //       action();
+  //     }
+  //   },
+  //   [
+  //     copyy,
+  //     handleUndo,
+  //     handleRedo,
+  //     handlePaste,
+  //     ToWords,
+  //     clearr,
+  //     handleReadAloud,
+  //     handleGenerateQR,
+  //   ]
+  // );
+
+  // // Global event listener (Attaches only ONCE)
+  // useEffect(() => {
+  //   const keyDownHandler = (event) => {
+  //     handleKeyDown(event);
+  //   };
+
+  //   window.addEventListener("keydown", keyDownHandler);
+
+  //   return () => {
+  //     window.removeEventListener("keydown", keyDownHandler);
+  //   };
+  // }, []);
+
+  //  Memoized function to generate or remove QR
+  // const handleGenerateQR = useCallback(() => {
+  //   if (text.trim() === "") {
+  //     showAlert("Enter some text to generate QR Code!", "warning");
+  //     return;
+  //   }
+
+  //   setQrText((prevText) => (prevText ? "" : text)); // Toggle QR Code
+  //   showAlert(
+  //     prevText ? "QR Code Removed!" : "QR Code Generated!",
+  //     "success"
+  //   );
+  // }, [text, showAlert]); // Dependencies
+
+  //  Memoized function to handle undo
+  const handleUndo = useCallback(() => {
+    if (history.length > 0) {
+      const previousText = history.pop();
+      setRedoHistory([text, ...redoHistory]); // Store current text in redo stack
+      setText(previousText);
+      setHistory([...history]); // Update history state
+      showAlert("Undone!", "success");
+    } else {
+      showAlert("Nothing to undo!", "warning");
     }
-    if (isAltKey && event.key.toLowerCase() === "z") {
-      event.preventDefault();
-      handleUndo();
+  }, [history, text, redoHistory, setHistory, setRedoHistory, showAlert]);
+
+  //  Memoized function to handle redo
+  const handleRedo = useCallback(() => {
+    if (redoHistory.length > 0) {
+      const nextText = redoHistory.shift();
+      setHistory([...history, text]); // Save current text to history
+      setText(nextText);
+      setRedoHistory([...redoHistory]); // Update redo state
+      showAlert("Redone!", "success");
+    } else {
+      showAlert("Nothing to redo!", "warning");
     }
-    if (isAltKey && event.key.toLowerCase() === "y") {
-      event.preventDefault();
-      handleRedo();
-    }
-    if (isAltKey && event.key.toLowerCase() === "v") {
-      event.preventDefault();
-      handlePaste();
-    }
-    if (isAltKey && event.key.toLowerCase() === "w") {
-      event.preventDefault();
-      ToWords();
-    }
-    if (isAltKey && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      clearr();
-    }
-    if (isAltKey && event.key.toLowerCase() === "s") {
-      event.preventDefault();
-      handleReadAloud();
-    }
-    if (isAltKey && event.key.toLowerCase() === "p") {
-      event.preventDefault();
-      if (textAreaRef.current) {
-        textAreaRef.current.focus();
+  }, [history, redoHistory, text, setHistory, setRedoHistory, showAlert]);
+
+  //  Memoized function to copy text
+  // const copyy = useCallback(() => {
+  //   navigator.clipboard.writeText(text);
+  //   showAlert("Text copied to clipboard!", "success");
+  // }, [text, showAlert]);
+
+  //  Memoized function to clear text
+  // const clearr = useCallback(() => {
+  //   setText("");
+  //   setHistory([]);
+  //   setRedoHistory([]);
+  //   showAlert("Text cleared!", "success");
+  // }, [setText, setHistory, setRedoHistory, showAlert]);
+
+  //  Memoized function to paste text
+  // const handlePaste = useCallback(async () => {
+  //   const pastedText = await navigator.clipboard.readText();
+  //   setText((prevText) => prevText + pastedText);
+  //   showAlert("Text pasted!", "success");
+  // }, [setText, showAlert]);
+
+  //  Memoized function to read text aloud
+  // const handleReadAloud = useCallback(() => {
+  //   const speech = new SpeechSynthesisUtterance(text);
+  //   window.speechSynthesis.speak(speech);
+  //   showAlert("Reading text aloud...", "success");
+  // }, [text, showAlert]);
+
+  //  Memoized function to convert text to words
+  // const ToWords = useCallback(() => {
+  //   if (!text) {
+  //     showAlert("Nothing to convert!", "warning");
+  //     return;
+  //   }
+  //   setText(convertToWords(text)); // Assume `convertToWords` is a function that converts numbers to words
+  //   showAlert("Numbers converted to words!", "success");
+  // }, [text, showAlert]);
+
+  //  Memoized key event handler
+  const handleKeyDown = useCallback(
+    (event) => {
+      const isAltKey = event.altKey || event.getModifierState("AltGraph");
+
+      const keyActions = {
+        c: copyy,
+        z: handleUndo,
+        y: handleRedo,
+        v: handlePaste,
+        w: ToWords,
+        k: clearr,
+        s: handleReadAloud,
+        q: handleGenerateQR,
+        p: () => textAreaRef.current?.focus(),
+      };
+
+      const action = keyActions[event.key.toLowerCase()];
+      if (isAltKey && action) {
+        event.preventDefault();
+        action();
       }
-    }
-  };
+    },
+    [
+      copyy,
+      handleUndo,
+      handleRedo,
+      handlePaste,
+      ToWords,
+      clearr,
+      handleReadAloud,
+      handleGenerateQR,
+    ]
+  );
 
-  document.addEventListener("keydown", handleKeyDown);
+  //  Attach global event listener ONCE
+  useEffect(() => {
+    const keyDownHandler = (event) => {
+      handleKeyDown(event);
+    };
 
-  return () => {
-    document.removeEventListener("keydown", handleKeyDown);
-  };
-  // eslint-disable-next-line
-}, [ToWords,clearr,handlePaste,handleRedo,handleUndo,handleReadAloud]);
+    window.addEventListener("keydown", keyDownHandler);
 
-//  useEffect(() => {
-//    const handleKeyDown = (event) => {
-//      if (event.altKey && event.key.toLowerCase() === "c") {
-//        event.preventDefault(); // Prevent default browser copy action
-//        copyy();
-//      }
-//      if (event.altKey && event.key.toLowerCase() === "z") {
-//        event.preventDefault(); // Prevent default browser undo action
-//        handleUndo();
-//      }
-//      if (event.altKey && event.key.toLowerCase() === "y") {
-//        event.preventDefault(); // Prevent default browser undo action
-//        handleRedo();
-//      }
-//      if (event.altKey && event.key.toLowerCase() === "v") {
-//        event.preventDefault(); // Prevent default browser paste action
-//        handlePaste();
-//      }
-//      if (event.altKey && event.key.toLowerCase() === "w") {
-//        event.preventDefault(); // Prevent default browser paste action
-//        ToWords();
-//      }
-
-//      if (event.altKey && event.key.toLowerCase() === "k") {
-//        event.preventDefault(); // Prevent default browser paste action
-//        clearr();
-//      }
-
-//      if (event.ctrlKey && event.key.toLowerCase() === "i") {
-    
-//        event.preventDefault(); // Prevents browser conflicts
-
-//        if (textAreaRef.current) {
-//          // Ensure the ref is available
-//          textAreaRef.current.focus(); // Moves focus to textarea
-//        }
-//      }
-//    };
-
-//    document.addEventListener("keydown", handleKeyDown);
-
-//    return () => {
-//      document.removeEventListener("keydown", handleKeyDown);
-//    };
-//  }, [ToWords]);
+    return () => {
+      window.removeEventListener("keydown", keyDownHandler);
+    };
+  }, [handleKeyDown]); //  Now we safely include `handleKeyDown` in dependencies
 
   return (
     <>
       <div
         className="container"
         style={{
-          color: props.mode === "dark" ? "white" : "#042743",
+          color: mode === "dark" ? "white" : "#042743",
         }}
       >
-        <h4>{props.heading}</h4>
+        <h4>{heading}</h4>
 
         <textarea
           className="form-control"
@@ -724,13 +1219,11 @@ useEffect(() => {
           ref={textAreaRef} // Reference to access the textarea
           autoFocus // Automatically focuses on the textarea when the page loads
           style={{
-            backgroundColor: props.mode === "dark" ? "#0f1118" : "#ebdfdf",
-            color: props.mode === "dark" ? "white" : "#042743",
-            borderColor: props.mode === "dark" ? "white" : "#042743",
+            backgroundColor: mode === "dark" ? "#0f1118" : "#ebdfdf",
+            color: mode === "dark" ? "white" : "#042743",
+            borderColor: mode === "dark" ? "white" : "#042743",
           }}
-          // placeholder="Ctrl+/ for keyboard shortcuts"
-        >
-        </textarea>
+        ></textarea>
 
         <div className="find-replace-section">
           <input
@@ -740,12 +1233,12 @@ useEffect(() => {
             onChange={handleFindChange}
             // onChange={(e) => setText(e.target.value)}
             className={`form-control mb-2 ${
-              props.mode === "dark" ? "dark-placeholder" : "light-placeholder"
+              mode === "dark" ? "dark-placeholder" : "light-placeholder"
             }`}
             style={{
-              backgroundColor: props.mode === "dark" ? "#0f1118" : "#ebdfdf",
-              color: props.mode === "dark" ? "white" : "#042743",
-              borderColor: props.mode === "dark" ? "white" : "#042743",
+              backgroundColor: mode === "dark" ? "#0f1118" : "#ebdfdf",
+              color: mode === "dark" ? "white" : "#042743",
+              borderColor: mode === "dark" ? "white" : "#042743",
               marginTop: 7,
             }}
           />
@@ -755,86 +1248,70 @@ useEffect(() => {
             value={replaceValue}
             onChange={handleReplaceChange}
             className={`form-control mb-2 ${
-              props.mode === "dark" ? "dark-placeholder" : "light-placeholder"
+              mode === "dark" ? "dark-placeholder" : "light-placeholder"
             }`}
             style={{
-              backgroundColor: props.mode === "dark" ? "#0f1118" : "#ebdfdf",
-              color: props.mode === "dark" ? "white" : "#042743",
-              borderColor: props.mode === "dark" ? "white" : "#042743",
+              backgroundColor: mode === "dark" ? "#0f1118" : "#ebdfdf",
+              color: mode === "dark" ? "white" : "#042743",
+              borderColor: mode === "dark" ? "white" : "#042743",
               marginTop: 7,
             }}
           />
 
-          {/* <button
-            className="btn btn-sm btn-primary mx-1 my-1"
-            type="button"
-            onClick={handleFindAndReplace}
-            mode={props.mode}
-          >
-            Find and Replace
-            </button> */}
           <Button
             text="Find and Replace"
             onClick={handleFindAndReplace}
-            mode={props.mode}
+            mode={mode}
           />
         </div>
 
-        <Button
-          text="To Upper Case"
-          onClick={hanldeUpClick}
-          mode={props.mode}
-        />
-        <Button
-          text="To Lower Case"
-          onClick={hanldeLowClick}
-          mode={props.mode}
-        />
-        <Button
-          text="Sort Lines"
-          onClick={handleSortButtonClick}
-          mode={props.mode}
-        />
-        <Button text="Capitalize" onClick={capital} mode={props.mode} />
+        <Button text="To Upper Case" onClick={hanldeUpClick} mode={mode} />
+        <Button text="To Lower Case" onClick={hanldeLowClick} mode={mode} />
+        <Button text="Sort Lines" onClick={handleSortButtonClick} mode={mode} />
+        <Button text="Capitalize" onClick={capital} mode={mode} />
+        <Button text="Remove Numbers" onClick={removeNumbers} mode={mode} />
         <Button
           text="Add Line Numbers"
           onClick={handleAddLineNumbers}
-          mode={props.mode}
+          mode={mode}
         />
-        <Button
-          text="Remove Numbers"
-          onClick={removeNumbers}
-          mode={props.mode}
-        />
-        <Button
-          text="Remove Extra Space"
-          onClick={rmvExtraSpc}
-          mode={props.mode}
-        />
+        <Button text="Remove Extra Space" onClick={rmvExtraSpc} mode={mode} />
         <Button
           text="Remove Special Characters"
           onClick={removeSpecialCharacters}
-          mode={props.mode}
+          mode={mode}
         />
+        <Button text="Amount in Words" onClick={ToWords} mode={mode} />
+        <Button text="Encrypt Text" onClick={handleEncrypt} mode={mode} />
+        <Button text="Decrypt Text" onClick={handleDecrypt} mode={mode} />
 
-        <Button text="Amount in Words" onClick={ToWords} mode={props.mode} />
-
-        <Button text="Encrypt Text" onClick={handleEncrypt} mode={props.mode} />
-        <Button text="Decrypt Text" onClick={handleDecrypt} mode={props.mode} />
         <Button
           text={isReading ? "Stop Reading" : "Start Reading"}
           onClick={isReading ? handleStop : handleReadAloud}
-          mode={props.mode}
+          mode={mode}
           disabled={text.trim() === ""}
         />
-        <Button text="Paste" onClick={handlePaste} mode={props.mode} />
-        <Button text="Copy" onClick={copyy} mode={props.mode} />
 
+        <Button
+          text={
+            text.trim()
+              ? qrText
+                ? "Remove QR Code"
+                : "Generate QR Code"
+              : "Generate QR Code"
+          }
+          // text={qrText ? "Remove QR Code" : "Generate QR Code"}
+          onClick={handleGenerateQR}
+          mode={mode}
+        />
+
+        <Button text="Paste" onClick={handlePaste} mode={mode} />
+        <Button text="Copy" onClick={copyy} mode={mode} />
         <button
           className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
           onClick={handleUndo}
-          mode={props.mode}
+          mode={mode}
         >
           Undo
         </button>
@@ -842,7 +1319,7 @@ useEffect(() => {
           className="btn btn-sm btn-warning  mx-1 my-1"
           type="button"
           onClick={handleRedo}
-          mode={props.mode}
+          mode={mode}
         >
           Redo
         </button>
@@ -855,7 +1332,7 @@ useEffect(() => {
             setReplaceValue(""); // Clear the "Replace" input
             setText(""); // Clear the main text area
           }}
-          mode={props.mode}
+          mode={mode}
         >
           Clear
         </button>
@@ -892,6 +1369,14 @@ useEffect(() => {
                 onClick={() => handleDownloadAs("text")}
               >
                 Text
+              </button>
+            </li>
+            <li>
+              <button
+                className="dropdown-item"
+                onClick={() => handleDownloadAs("qr")}
+              >
+                QR Code
               </button>
             </li>
           </ul>
@@ -933,14 +1418,29 @@ useEffect(() => {
             </li>
           </ul>
         </div>
+
+        {qrText && text.trim() && (
+          <div className="qr-container mt-4" ref={qrRef}>
+            <h4>Generated QR Code:</h4>
+            <QRCodeCanvas value={text} size={200} />
+          </div>
+        )}
+
+        {/* {qrText && (
+          <div className="qr-container mt-4 " ref={qrRef}>
+            <h4>Generated QR Code:</h4>
+            <QRCodeCanvas value={qrText} size={150} />
+          </div>
+        )} */}
       </div>
+
       <div
         className="container mt-4"
         style={{
-          color: props.mode === "dark" ? "white" : "#042743",
+          color: mode === "dark" ? "white" : "#042743",
         }}
       >
-        <h4>Text Summary</h4>
+        <h4>Text Statistics</h4>
         <p>
           {wordCount} word(s), {letterCount} letter(s), {charCount}{" "}
           character(s), {sentenceCount} sentence(s) and {paragraphCount}{" "}
@@ -951,4 +1451,3 @@ useEffect(() => {
     </>
   );
 }
-
