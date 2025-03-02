@@ -1,6 +1,6 @@
 {
   "homepage": "https://ani1509.github.io/WordMaven",
-  "name": "my-app",
+  "name": "wordmaven",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
