@@ -44,7 +44,7 @@ function App() {
 
   return (
     <>
-      <Navbar title="TextEase" mode={mode} toggleMode={toggleMode} />
+      <Navbar title="WordMaven" mode={mode} toggleMode={toggleMode} />
       <Alert alert={alert} />
       <div className="container my-3">
         <TextForm heading="Enter Your Text" mode={mode} showAlert={showAlert} />
