@@ -18,7 +18,7 @@ const shortcutsData = [
   { key: "Alt + Q", desc: "Generate QR" },
 ];
 
-export default function ShortcutModal({ isOpen, onClose }) {
+export default function ShortcutModal({ isOpen, onClose,mode }) {
   if (!isOpen) return null;
 
   return (
@@ -30,14 +30,16 @@ export default function ShortcutModal({ isOpen, onClose }) {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
-        className="bg-light text-dark p-4 rounded shadow-lg w-50"
+        className={`bg-${mode} text-${
+          mode === "light" ? "dark" : "light"
+        } p-4 rounded shadow-lg w-50`}
       >
         {/* Header with Title and Close Button */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h2 className="fs-5 fw-semibold m-0">Keyboard Shortcuts</h2>
           <button
             onClick={onClose}
-            className="btn btn-light rounded-circle p-1 d-flex align-items-center justify-content-center"
+            className={`btn btn-${mode} rounded-circle p-1 d-flex align-items-center justify-content-center`}
           >
             <X size={20} />
           </button>

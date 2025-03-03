@@ -80,6 +80,7 @@ export default function Navbar({ toggleMode, mode, title }) {
       <ShortcutModal
         isOpen={isShortcutOpen}
         onClose={() => setIsShortcutOpen(false)}
+        mode={mode}
       />
     </>
   );
